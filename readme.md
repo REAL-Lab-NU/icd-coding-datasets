@@ -1,4 +1,4 @@
-# Medical Coding Datasets Documentation
+# Medical ICD Coding Datasets Documentation
 
 ## Table of Contents
 - [Abstract](#abstract)
@@ -14,7 +14,7 @@
 
 ## Abstract
 
-This document provides comprehensive information about the medical coding datasets used in this project. Medical coding is the task of automatically assigning diagnosis and procedure codes (ICD-9, ICD-10) to clinical narratives from electronic health records. This project utilizes three major datasets: **CodiEsp** (Spanish clinical cases), **MIMIC-III** (US critical care records), and **MIMIC-IV** (updated US critical care records).
+This document provides comprehensive information about the medical icd coding datasets used in this project. Medical coding is the task of automatically assigning diagnosis and procedure codes (ICD-9, ICD-10) to clinical narratives from electronic health records. This project utilizes three major datasets: **CodiEsp** (Spanish clinical cases), **MIMIC-III** (US critical care records), and **MIMIC-IV** (updated US critical care records).
 
 ### Key Challenges in Medical Coding
 - **Large Label Space**: ICD-10 contains 70,000+ diagnostic codes
@@ -29,9 +29,12 @@ This document provides comprehensive information about the medical coding datase
 
 | Dataset | Language | Coding System | Time Period | # Cases | # Codes | Document Type | Avg. Codes per Case |
 |---------|----------|---------------|-------------|---------|---------|---------------|---------------------|
-| **CodiEsp** | Spanish (→English) | ICD-10 | N/A | 1,000 (test) | ~16,000 | Clinical case reports | ~7.5 |
-| **MIMIC-III** | English | ICD-9 | 2001-2012 | 52,722 | 8,929 (full) | Discharge summaries | ~15.9 |
-| **MIMIC-IV** | English | ICD-9 / ICD-10 | 2008-2019 | 331,794 | 15,000+ | Discharge summaries | ~12.3 |
+| **CodiEsp** | Spanish (→English) | ICD-10 | N/A | 250 (test) + 250 (dev) | 1,142 (test) | Clinical case reports | 11.36 (test) |
+| **MIMIC-III** | English | ICD-9 | 2001-2012 | 52,722 | TBD* | Discharge summaries | TBD* |
+| **MIMIC-IV ICD-9** | English | ICD-9 | 2008-2015 | 209,326 | 6,150 | Discharge summaries | 13.27 |
+| **MIMIC-IV ICD-10** | English | ICD-10 | 2015-2019 | 122,278 | 7,942 | Discharge summaries | 15.65 |
+
+*MIMIC-III statistics require accessing the full database files (currently only split files available)
 
 ---
 
@@ -48,12 +51,13 @@ The **CodiEsp (Clinical Coding in Spanish) Dataset** is a gold standard corpus o
 | **Source** | Spanish clinical case reports from SciELO |
 | **Language** | Spanish (original) → English (translated via GPT-3.5) |
 | **Coding System** | ICD-10 (CIE-10 in Spanish) |
-| **Total Cases** | 1,000 clinical cases (test set) |
+| **Total Cases** | 250 test + 250 dev = 500 clinical cases |
 | **Document Type** | Full clinical case reports with diagnoses and procedures |
-| **Average Length** | Varies (clinical case narratives) |
+| **Average Length** | ~337 words (~447 tokens) per case |
 | **Annotation** | Manually coded by medical professionals |
-| **ICD-10 Codes** | ~16,000 unique diagnosis codes |
-| **Codes per Case** | Average ~7.5 codes per clinical case |
+| **ICD-10 Codes (Test)** | 1,142 unique diagnosis codes |
+| **ICD-10 Codes (Dev)** | 1,157 unique diagnosis codes |
+| **Codes per Case** | Test: 11.36 avg, Dev: 10.70 avg |
 
 ### Key Features
 
@@ -73,7 +77,7 @@ The CodiEsp dataset is commonly used with **LLM-guided tree-search algorithms** 
 
 ### Data Access
 
-**Download Link**: [CodiEsp Dataset on Zenodo](https://zenodo.org/records/3837305#.XsZFoXUzZpg)
+**Download Link**: [CodiEsp Dataset on Zenodo](https://zenodo.org/records/3837305)
 
 **GitHub Repository**: [https://github.com/anand-subu/automated-clinical-coding-llm](https://github.com/anand-subu/automated-clinical-coding-llm)
 
@@ -85,7 +89,8 @@ git clone https://github.com/anand-subu/automated-clinical-coding-llm.git
 cd automated-clinical-coding-llm
 
 # 2. Download CodiEsp dataset from Zenodo
-wget https://zenodo.org/records/3837305/files/codiesp.zip
+# Visit: https://zenodo.org/records/3837305
+# Download and extract codiesp.zip
 
 # 3. Extract dataset
 unzip codiesp.zip
@@ -138,20 +143,22 @@ This project uses multiple benchmark splits:
 
 #### 1. MIMIC-III Full
 - **Cases**: 52,722 discharge summaries
-- **ICD-9 Codes**: 8,929 unique codes
-- **Avg. Codes/Case**: ~15.9
+- **ICD-9 Codes**: 8,929 unique codes (as reported in literature)
+- **Avg. Codes/Case**: ~15.9 (as reported in literature)
 - **Source**: [Explainable Prediction of Medical Codes (Mullenbach et al., NAACL 2018)](https://aclanthology.org/N18-1100/)
+- **Note**: Statistics from literature; verification requires main database files
 
 #### 2. MIMIC-III 50
-- **Cases**: 8,067 discharge summaries
+- **Cases**: 11,368 discharge summaries (verified from split file)
 - **ICD-9 Codes**: 50 most frequent codes
 - **Purpose**: Simplified benchmark for faster experimentation
 - **Source**: Same as MIMIC-III Full
 
 #### 3. MIMIC-III Clean (from this project)
-- **Cases**: Similar to Full, with improved preprocessing
+- **Cases**: 52,712 discharge summaries (verified from split file)
 - **Improvements**: Corrected code assignment, deduplication
 - **Purpose**: Address data quality issues found in original splits
+- **Subsplits Available**: 0.2 (22,370), 0.4 (30,246), 0.6 (38,033), 0.8 (45,722)
 
 ### Key Features
 
@@ -184,11 +191,11 @@ cd medical-coding-reproducibility
 
 # 2. Download MIMIC-III v1.4 from PhysioNet
 # Visit: https://physionet.org/content/mimiciii/1.4/
-# After approval, download and extract to a directory (e.g., ~/data/mimiciii)
+# After approval, download and extract to a directory
 
 # 3. Configure path in settings
 # Edit src/settings.py and set:
-# DOWNLOAD_DIRECTORY_MIMICIII = "~/data/mimiciii"  # Your download path
+# DOWNLOAD_DIRECTORY_MIMICIII = "/path/to/your/mimiciii"
 
 # 4. Install dependencies
 pip install -e .
@@ -227,24 +234,29 @@ python prepare_data/prepare_mimiciii.py
 ### MIMIC-IV Splits
 
 #### 1. MIMIC-IV ICD-9
-- **Cases**: ~165,000 discharge summaries (2008-2015)
-- **ICD-9 Codes**: ~15,000 unique codes
-- **Avg. Codes/Case**: ~12.3
+- **Cases**: 209,326 discharge summaries (2008-2015)
+- **ICD-9 Codes**: 6,150 unique codes
+- **Avg. Codes/Case**: 13.27
+- **Median Codes/Case**: 12.0
 - **Purpose**: Benchmark for ICD-9 coding, comparable to MIMIC-III
 
 #### 2. MIMIC-IV ICD-10
-- **Cases**: ~166,000 discharge summaries (2015-2019)
-- **ICD-10 Codes**: ~15,000 unique codes
-- **Avg. Codes/Case**: ~12.3
+- **Cases**: 122,278 discharge summaries (2015-2019)
+- **ICD-10 Codes**: 7,942 unique codes
+- **Avg. Codes/Case**: 15.65
+- **Median Codes/Case**: 14.0
 - **Purpose**: Modern benchmark for ICD-10 coding (used in this project)
 
 ### Key Features
 
-- **Larger Scale**: ~6x more admissions than MIMIC-III
-- **Modern Coding**: Includes ICD-10 transition period
+- **Larger Scale**: 4x more admissions than MIMIC-III (209K ICD-9 + 122K ICD-10 vs 52K)
+- **Modern Coding**: Includes ICD-10 transition period (2015)
 - **Improved Data Quality**: Enhanced preprocessing and validation
 - **Dual Coding Systems**: Enables ICD-9 to ICD-10 transfer learning research
-- **Longer Documents**: Discharge summaries average ~1,500 tokens
+- **Document Lengths**:
+  - ICD-9: avg 1,869 tokens (median 1,755)
+  - ICD-10: avg 2,123 tokens (median 1,984)
+- **More Codes per Case**: ICD-10 averages 15.65 codes vs ICD-9's 13.27 codes
 
 ### Data Access
 
@@ -269,12 +281,12 @@ cd medical-coding-reproducibility
 # Visit and download:
 #   - MIMIC-IV v2.2: https://physionet.org/content/mimiciv/2.2/
 #   - MIMIC-IV-NOTE v2.2: https://physionet.org/content/mimic-iv-note/2.2/
-# Extract to directories (e.g., ~/data/mimiciv and ~/data/mimiciv-note)
+# Extract to separate directories
 
 # 3. Configure paths in settings
 # Edit src/settings.py and set:
-# DOWNLOAD_DIRECTORY_MIMICIV = "~/data/mimiciv"
-# DOWNLOAD_DIRECTORY_MIMICIV_NOTE = "~/data/mimiciv-note"
+# DOWNLOAD_DIRECTORY_MIMICIV = "/path/to/your/mimiciv"
+# DOWNLOAD_DIRECTORY_MIMICIV_NOTE = "/path/to/your/mimiciv-note"
 
 # 4. Install dependencies (if not already done)
 pip install -e .
@@ -286,51 +298,41 @@ python prepare_data/prepare_mimiciv.py
 #   - files/data/mimiciv_icd10/   (ICD-10 data: 2015-2019)
 ```
 
-### Current Project Usage
-
-This project focuses on **MIMIC-IV ICD-10** for the following reasons:
-- **Modern Relevance**: ICD-10 is the current global standard
-- **Larger Code Space**: More challenging task (70,000+ codes vs 15,000)
-- **Real-world Applicability**: Matches current clinical coding practices
-- **Evidence Extraction**: GPT-4o used to extract clinical evidence supporting each code
-
-**Generated Files** (in `files/data/mimiciv_icd10/`):
-- `mimiciv_icd10.feather`: Structured discharge summaries with ICD-10 codes
-- `structured_discharge_summaries.jsonl`: Parsed sections (history, hospital_course, etc.)
-- `evidence_top3_20k.jsonl`: GPT-4o extracted evidence for top-3 codes per case
-- `icd10_code_descriptions.jsonl`: ICD-10 code to description mapping
-- Train/validation/test splits
-
 ---
 
 ## Dataset Comparison
 
 ### Document Length Statistics
 
-| Dataset | Avg. Tokens | Median Tokens | 95th Percentile | Max Tokens |
-|---------|-------------|---------------|-----------------|------------|
-| CodiEsp | ~800 | ~700 | ~1,400 | ~2,000 |
-| MIMIC-III Full | ~1,500 | ~1,200 | ~3,500 | ~10,000 |
-| MIMIC-IV ICD-10 | ~1,500 | ~1,300 | ~3,800 | ~10,200 |
+| Dataset | Avg. Words | Median Words | Avg. Tokens | Median Tokens | 95th %ile Tokens | Max Tokens |
+|---------|------------|--------------|-------------|---------------|------------------|------------|
+| CodiEsp (Test) | 337 | 322 | 447 | 427 | - | ~959* |
+| MIMIC-III Full | TBD | TBD | TBD | TBD | TBD | TBD |
+| MIMIC-IV ICD-9 | 1,406 | 1,320 | 1,869 | 1,755 | 3,270 | 11,447 |
+| MIMIC-IV ICD-10 | 1,597 | 1,492 | 2,123 | 1,984 | 3,696 | 10,312 |
+
+*Estimated from max word count of 721 words
 
 ### Code Distribution Characteristics
 
 | Dataset | Total Codes | Codes ≥ 10 samples | Codes ≥ 100 samples | Distribution |
 |---------|-------------|-------------------|---------------------|--------------|
-| CodiEsp | ~16,000 | ~2,000 | ~500 | Long-tail |
-| MIMIC-III Full | 8,929 | 3,426 | 923 | Long-tail |
-| MIMIC-IV ICD-10 | ~15,000 | ~4,500 | ~1,200 | Long-tail |
+| CodiEsp (Test) | 1,142 | - | - | Long-tail |
+| MIMIC-III Full | TBD | TBD | TBD | Long-tail |
+| MIMIC-IV ICD-9 | 6,150 | 6,150 (100%) | 2,343 (38.1%) | Long-tail |
+| MIMIC-IV ICD-10 | 7,942 | 7,942 (100%) | 1,965 (24.7%) | Long-tail |
 
 ### Task Complexity
 
-| Aspect | CodiEsp | MIMIC-III | MIMIC-IV ICD-10 |
-|--------|---------|-----------|-----------------|
-| **Label Space Size** | Very Large (16K) | Large (9K) | Very Large (15K) |
-| **Document Length** | Medium | Long | Long |
-| **Language** | Spanish→English | English | English |
-| **Code Hierarchy** | ICD-10 (deep) | ICD-9 (shallow) | ICD-10 (deep) |
-| **Clinical Domain** | General cases | Critical care | Critical care + General |
-| **Primary Challenge** | Cross-lingual, Tree search | Multi-label extreme classification | Long documents, Large label space |
+| Aspect | CodiEsp | MIMIC-III | MIMIC-IV ICD-9 | MIMIC-IV ICD-10 |
+|--------|---------|-----------|----------------|-----------------|
+| **Label Space Size** | Small-Medium (1.1K) | TBD (~9K) | Medium (6.2K) | Medium-Large (7.9K) |
+| **Dataset Size** | Small (250) | Medium (52K) | Very Large (209K) | Large (122K) |
+| **Document Length** | Short (~447 tokens) | Long | Long (~1,869 tokens) | Long (~2,123 tokens) |
+| **Language** | Spanish→English | English | English | English |
+| **Code Hierarchy** | ICD-10 (deep) | ICD-9 (shallow) | ICD-9 (shallow) | ICD-10 (deep) |
+| **Clinical Domain** | General cases | Critical care | Critical care | Critical care + General |
+| **Primary Challenge** | Cross-lingual, Tree search | Multi-label classification | Large dataset, Multi-label | Long documents, ICD-10 granularity |
 
 ---
 
@@ -347,7 +349,7 @@ cd automated-clinical-coding-llm
 ```
 
 **Step 2: Download Dataset**
-- Visit: [Zenodo CodiEsp page](https://zenodo.org/records/3837305#.XsZFoXUzZpg)
+- Visit: [Zenodo CodiEsp page](https://zenodo.org/records/3837305)
 - Download `codiesp.zip` (no credentials required)
 - Extract in repository directory
 
@@ -385,7 +387,7 @@ cd medical-coding-reproducibility
 # Install dependencies
 pip install -e .
 
-# Edit src/settings.py to set DOWNLOAD_DIRECTORY_MIMICIII
+# Edit src/settings.py to set DOWNLOAD_DIRECTORY_MIMICIII to your path
 
 # Process data
 python prepare_data/prepare_mimiciii_mullenbach.py  # For Full/50 splits
@@ -422,8 +424,8 @@ cd medical-coding-reproducibility
 pip install -e .
 
 # Edit src/settings.py to set:
-#   DOWNLOAD_DIRECTORY_MIMICIV
-#   DOWNLOAD_DIRECTORY_MIMICIV_NOTE
+#   DOWNLOAD_DIRECTORY_MIMICIV = "/path/to/mimiciv"
+#   DOWNLOAD_DIRECTORY_MIMICIV_NOTE = "/path/to/mimiciv-note"
 
 # Process data (creates both ICD-9 and ICD-10 splits)
 python prepare_data/prepare_mimiciv.py
@@ -494,7 +496,7 @@ python prepare_data/prepare_mimiciv.py
 }
 ```
 
-### Automated Medical Coding on MIMIC (This Project)
+### Automated Medical Coding on MIMIC
 
 ```bibtex
 @inproceedings{edin2023automated,
@@ -521,41 +523,3 @@ python prepare_data/prepare_mimiciv.py
   url={https://openreview.net/forum?id=mqnR8rGWkn}
 }
 ```
-
----
-
-## Additional Resources
-
-### Official Documentation
-- **PhysioNet**: [https://physionet.org/](https://physionet.org/)
-- **MIMIC-III Documentation**: [https://mimic.mit.edu/docs/iii/](https://mimic.mit.edu/docs/iii/)
-- **MIMIC-IV Documentation**: [https://mimic.mit.edu/docs/iv/](https://mimic.mit.edu/docs/iv/)
-- **CITI Training**: [https://about.citiprogram.org/](https://about.citiprogram.org/)
-
-### GitHub Repositories
-- **CodiEsp Processing**: [https://github.com/anand-subu/automated-clinical-coding-llm](https://github.com/anand-subu/automated-clinical-coding-llm)
-- **MIMIC Processing**: [https://github.com/JoakimEdin/medical-coding-reproducibility](https://github.com/JoakimEdin/medical-coding-reproducibility)
-
-### Project File Structure
-```
-medical-coding-reproducibility/
-├── files/data/
-│   ├── mimiciii_full/          # MIMIC-III Full benchmark
-│   ├── mimiciii_50/            # MIMIC-III 50 benchmark
-│   ├── mimiciii_clean/         # MIMIC-III Clean (improved)
-│   ├── mimiciv_icd9/           # MIMIC-IV ICD-9 (2008-2015)
-│   └── mimiciv_icd10/          # MIMIC-IV ICD-10 (2015-2019)
-├── prepare_data/
-│   ├── prepare_mimiciii.py           # Process MIMIC-III Clean
-│   ├── prepare_mimiciii_mullenbach.py # Process MIMIC-III Full/50
-│   ├── prepare_mimiciv.py            # Process MIMIC-IV
-│   └── utils.py                      # Shared utilities
-└── src/
-    └── settings.py                   # Configure data paths
-```
-
----
-
-**Last Updated**: October 2025
-
-**Maintained by**: Medical Coding Reproducibility Project Team
